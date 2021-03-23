@@ -1,0 +1,25 @@
+{
+  "name": "salty",
+  "version": "1.0.0",
+  "description": "Very cool",
+  "main": "index.js",
+  "engines": {
+    "node": "14.x"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "author": "hanai",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongodb": "^3.6.3",
+    "node": "^14.x"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
