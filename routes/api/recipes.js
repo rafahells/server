@@ -1,27 +1,27 @@
 const { response } = require('express');
 const express = require('express');
 const mongodb = require('mongodb');
-const collection = require('../../serve')
+const connection = require('../../serve')
 const router = express.Router();
 
 //Get one recipes
 router.get('/', async (req, res) => {
-    const recipes =  await collection.loadCollection('recipes');
-    res.send(await recipes.find({}).toArray());
+    const db =  await connection.loadConnection();
+    res.send(await db.collection('recipes').find({}).toArray());
 })
 
 //Get recipes
 router.get('/:id', async (req, res) => {
-    const recipes =  await collection.loadCollection('recipes');
-    res.send(recipes.findOne({_id: new mongodb.ObjectID(req.params.id)}));
+    const db =  await connection.loadConnection();
+    res.send(await db.collection('recipes').findOne({_id: new mongodb.ObjectID(req.params.id)}));
     //res.send(mongodb.ObjectID(req.params.id).getTimestamp());
 })
 
 //Add recipes
 router.post('/', async (req, res) => {
-    const recipes =  await collection.loadCollection('recipes');
+    const db =  await connection.loadConnection();
     
-    await recipes.insertOne({
+    await db.collection('recipes').insertOne({
         description: req.body.description,
         quantity: req.body.quantity,
         cost: req.body.cost,
@@ -29,23 +29,23 @@ router.post('/', async (req, res) => {
         directions: req.body.directions,
         ingredients: req.body.ingredients
     }, { timestamps: true });
-    res.status(201).send(await recipes.find({}).toArray());
+    res.status(201).send(await db.collection('recipes').find({}).toArray());
 })
 
 
 //Delete recipes
 router.delete('/:id', async(req, res) => {
-    const recipes =  await collection.loadCollection('recipes');
+    const db =  await connection.loadConnection();
     //recipes.drop();
-    await recipes.deleteOne({_id: new mongodb.ObjectID(req.params.id)});
-    res.status(200).send(await recipes.find({}).toArray());
+    await db.collection('recipes').deleteOne({_id: new mongodb.ObjectID(req.params.id)});
+    res.status(200).send(await db.collection('recipes').find({}).toArray());
 });
 
 
 //Update recipes
 router.put('/:id', async(req, res) => {
-    const recipes =  await collection.loadCollection('recipes');
-    await recipes.updateOne({ _id: new mongodb.ObjectID(req.params.id)},
+    const db =  await connection.loadConnection();
+    await db.collection('recipes').updateOne({ _id: new mongodb.ObjectID(req.params.id)},
         {
             $set: {
                 "description": req.body.description,

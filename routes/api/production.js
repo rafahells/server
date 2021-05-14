@@ -1,31 +1,70 @@
 const { response } = require('express');
 const express = require('express');
 const mongodb = require('mongodb');
-const collection = require('../../serve')
+const connection = require('../../serve')
 const router = express.Router();
 
 //Get one production
 router.get('/', async (req, res) => {
-    const production =  await collection.loadCollection('production');
+    const db = await connection.loadConnection();
     if(req.query.last === 'true'){ 
-        var query = { finishedAt: {} };
-        res.send(await production.find(query).sort( { _id : -1 } ).limit(1).toArray());
+        var prod2 = db.collection('production').find({}).sort({_id:-1}).limit(1);
+        res.send(await prod2.toArray());
     }
-    else
-        res.send(await production.find({}).toArray());
+    else{
+        var prod = db.collection('production').aggregate([
+            {
+                $lookup:
+                {
+                    from: 'sales',
+                    let: { "idFromProduction": "$_id" },
+                    pipeline: [
+                        { "$addFields": { "productionId": { "$toObjectId": "$productionId" }}},
+                        { $match:
+                            { $expr:
+                               { $and:
+                                  [
+                                    { $ne: [ "$finishedAt", null] },
+                                    { $eq: [ "$productionId",  "$$idFromProduction" ] }
+                                  ]
+                               }
+                            }
+                        },                  
+                        {
+                            $group : {
+                               _id : "$saleBy",
+                               productionId : { "$first": "$productionId" },
+                               total: { $sum: "$total" }
+                            }
+                        }
+                     ],
+                    as: "sales"
+                }
+            },
+            {
+                $sort: {"_id ": -1}
+            }
+            // {
+            //     $group : {
+            //        _id : "$_id",
+            //        production : { "$first": "$$ROOT" }
+            //     }
+            // }
+        ]).toArray()
+        res.send(await prod);
+    }
 })
 
 //Get production
 router.get('/:id', async (req, res) => {
-    const production =  await collection.loadCollection('production');
-    res.send(production.findOne({_id: new mongodb.ObjectID(req.params.id)}));
+    const db = await connection.loadConnection();
+    res.send(await db.collection('production').findOne({_id: new mongodb.ObjectID(req.params.id)}));
 })
 
 //Add production
 router.post('/', async (req, res) => {
-    const production =  await collection.loadCollection('production');
-    
-    await production.insertOne({
+    const db = await connection.loadConnection();
+    await db.collection('production').insertOne({
         createdAt: Date(),
         updatedAt: Date(),
         finishedAt: { type: Date },
@@ -33,23 +72,24 @@ router.post('/', async (req, res) => {
         total: req.body.total,
         products: req.body.products
     }, { timestamps: true });
-    res.status(201).send(await production.find({}).toArray());
+    res.status(201).send(await db.collection('production').find({}).toArray());
 })
 
 
 //Delete production
 router.delete('/:id', async(req, res) => {
-    const production =  await collection.loadCollection('production');
+    const db = await connection.loadConnection();
     //production.drop();
-    await production.deleteOne({_id: new mongodb.ObjectID(req.params.id)});
-    res.status(200).send(await production.find({}).toArray());
+    await db.collection('production').deleteOne({_id: new mongodb.ObjectID(req.params.id)});
+    res.status(200).send(await db.collection('production').find({}).toArray());
 });
 
 
 //Update production
 router.put('/:id', async(req, res) => {
-    const production =  await collection.loadCollection('production');
-    await production.updateOne({ _id: new mongodb.ObjectID(req.params.id)},
+    const db = await connection.loadConnection();
+
+    await db.collection('production').updateOne({ _id: new mongodb.ObjectID(req.params.id)},
         {
             $set: {
                 "updatedAt": Date(),
@@ -59,7 +99,7 @@ router.put('/:id', async(req, res) => {
                 "products": req.body.products
                 }
         })
-    res.status(200).send(await production.find().sort( { _id : -1 } ).limit(1).toArray());
+    res.status(200).send(await db.collection('production').find().sort( { _id : -1 } ).limit(1).toArray());
     
 });
     

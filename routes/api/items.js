@@ -1,26 +1,26 @@
 const { response } = require('express');
 const express = require('express');
 const mongodb = require('mongodb');
-const collection = require('../../serve')
+const connection = require('../../serve')
 const router = express.Router();
 
 //Get one items
 router.get('/', async (req, res) => {
-    const items =  await collection.loadCollection('items');
-    res.send(await items.find({}).sort( { description: +1 } ).toArray());
+    const db =  await connection.loadConnection();
+    res.send(await db.collection('items').find({}).sort( { description: +1 } ).toArray());
 })
 
 //Get items
 router.get('/:id', async (req, res) => {
-    const items =  await collection.loadCollection('items');
-    res.send(items.findOne({_id: new mongodb.ObjectID(req.params.id)}));
+    const db =  await connection.loadConnection();
+    res.send(db.collection('items').findOne({_id: new mongodb.ObjectID(req.params.id)}));
 })
 
 //Add items
 router.post('/', async (req, res) => {
-    const items =  await collection.loadCollection('items');
+        const db =  await connection.loadConnection();
     
-    await items.insertOne({
+    await db.collection('items').insertOne({
         description: req.body.description,
         quantity: req.body.quantity,
         price: req.body.price
@@ -34,23 +34,23 @@ router.post('/', async (req, res) => {
     //         price: req.body.price
     //     }, { timestamps: true });
     // }
-    res.status(201).send(await items.find({}).sort( { description: +1 } ).toArray());
+    res.status(201).send(await db.collection('items').find({}).sort( { description: +1 } ).toArray());
 })
 
 
 //Delete items
 router.delete('/:id', async(req, res) => {
-    const items =  await collection.loadCollection('items');
+        const db =  await connection.loadConnection();
     //items.drop();
-    await items.deleteOne({_id: new mongodb.ObjectID(req.params.id)});
-    res.status(200).send(await items.find({}).sort( { description: +1 } ).toArray());
+    await db.collection('items').deleteOne({_id: new mongodb.ObjectID(req.params.id)});
+    res.status(200).send(await db.collection('items').find({}).sort( { description: +1 } ).toArray());
 });
 
 
 //Update items
 router.put('/:id', async(req, res) => {
-    const items =  await collection.loadCollection('items');
-    await items.updateOne({ _id: new mongodb.ObjectID(req.params.id)},
+        const db =  await connection.loadConnection();
+    await db.collection('items').updateOne({ _id: new mongodb.ObjectID(req.params.id)},
         {
             $set: {
                 "description": req.body.description,
