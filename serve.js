@@ -1,40 +1,39 @@
 const express = require('express');
 const mongodb = require('mongodb');
 const router = express.Router();
+const url = 'mongodb+srv://rafahells:uMG4VI7RE8T8hX46@cluster0.emtec.mongodb.net/salty?retryWrites=true&w=majority';
+const conn = mongodb.MongoClient;
 
-
-// async function loadCollection(collection, aggregate, foreign){
+// async function loadConnection(){
 //     const client = await mongodb.MongoClient.connect
 //     ('mongodb+srv://rafahells:uMG4VI7RE8T8hX46@cluster0.emtec.mongodb.net/salty?retryWrites=true&w=majority', {
 //         useUnifiedTopology: true
 //     });
-
-//     // console.log(aggregate)
-//     // if(aggregate)
-//     //     return client.db('salty').collection(collection).aggregate([{
-//     //         $lookup:
-//     //         {
-//     //             from: aggregate,
-//     //             localField: "_id.toString()",
-//     //             foreignField: foreign + ".toString()",
-//     //             as: "fuck"
-//     //         }
-//     //     },
-//     //     { "$project": {
-//     //         "total": { "$sum": "$fuck.total" }
-//     //       }}
-//     //     ]).toArray()
-//     // else
-//     //     return client.db('salty').collection(collection);
+//     console.log(client.isConnected())
+//     return client.db('salty');
 // }
 
-async function loadConnection(){
-    const client = await mongodb.MongoClient.connect
-    ('mongodb+srv://rafahells:uMG4VI7RE8T8hX46@cluster0.emtec.mongodb.net/salty?retryWrites=true&w=majority', {
-        useUnifiedTopology: true
-    });
+const client = {};
 
-    return client.db('salty');
+var _db;
+async function loadConnection(){
+    if (!client.isConnected){
+        _db = await conn.connect(url, { useUnifiedTopology: true });
+        client.isConnected = _db.isConnected();
+        return _db.db('salty');
+    }
+    else {
+        console.log('fuck yeahhh')
+        return _db.db('salty');
+    }
+    
 }
+
+// connectToServer: function( callback ) {
+//     MongoClient.connect( url,  { useNewUrlParser: true }, function( err, client ) {
+//       _db  = client.db('test_db');
+//       return callback( err );
+//     } );
+//   }
 
 module.exports = { loadConnection };
