@@ -23,7 +23,6 @@ async function loadConnection(){
         return _db.db('salty');
     }
     else {
-        console.log('fuck yeahhh')
         return _db.db('salty');
     }
     

@@ -7,7 +7,11 @@ const router = express.Router();
 //Get one sales
 router.get('/', async (req, res) => {
     const db =  await connection.loadConnection();
-    res.send(await db.collection('sales').find({}).toArray());
+    let query = {};
+    if(req.query.debtors){
+        query = { finishedAt: null };
+    }
+    res.send(await db.collection('sales').find(query).toArray());
 })
 
 //Get sales
@@ -96,3 +100,4 @@ router.put('/', async(req, res) => {
 
 
 module.exports = router;
+
